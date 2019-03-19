@@ -59,10 +59,16 @@ public class EsLintIssue {
     }
 
     public int getLine() {
+        if (line == 0) {
+            return 1;
+        }
         return line;
     }
 
     public void setLine(int line) {
+        if (line == 0) {
+            line = 1;
+        }
         this.line = line;
     }
 

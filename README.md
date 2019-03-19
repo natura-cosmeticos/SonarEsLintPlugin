@@ -15,6 +15,10 @@ We don't have plans to add those changes in the original plugin, but if we creat
 
 ## Changelog
 
+0.3.4 - Modified the ESLint plugin to deal with issues that registers line as 0
+
+0.3.3 - Added ESLint rules to disable-inline plugin
+
 0.3.2 - Added --no-inline-config to the eslint arguments, ensuring that even the eslint-disable comments will be
 registered
 
