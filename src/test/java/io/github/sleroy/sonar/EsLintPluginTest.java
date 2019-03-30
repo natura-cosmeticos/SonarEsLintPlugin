@@ -29,7 +29,7 @@ import org.sonar.api.internal.SonarRuntimeImpl;
 import org.sonar.api.utils.Version;
 
 public class EsLintPluginTest {
-    public static final int EXPECTED_PROPERTIES = 6;
+    public static final int EXPECTED_PROPERTIES = 7;
 
     private static Optional<Property> findPropertyByName(Property[] properties, String name) {
         return Stream.of(properties).filter(p -> p.key().equals(name)).findFirst();

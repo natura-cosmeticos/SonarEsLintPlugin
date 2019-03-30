@@ -206,7 +206,7 @@ public class EsLintSensorTest {
     public void execute_callsExecutorWithSuppliedTimeout() throws IOException {
 	sensor.execute(context);
 
-	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class), context);
+	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class), any(SensorContext.class));
 	assertEquals((Integer) EsLintExecutorConfig.MAX_TIMEOUT, configCaptor.getValue().getTimeoutMs());
     }
 
