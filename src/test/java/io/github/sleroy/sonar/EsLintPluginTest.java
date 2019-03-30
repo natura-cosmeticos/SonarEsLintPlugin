@@ -74,7 +74,7 @@ public class EsLintPluginTest {
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_TIMEOUT));
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_RULES_DIR));
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_RULE_CONFIGS));
-  assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_DISABLE_INLINE_CFG));
+	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG));
     }
 
     @Test
@@ -95,6 +95,15 @@ public class EsLintPluginTest {
 	assertEquals("config", property.fields()[1].key());
 	assertEquals(PropertyType.TEXT, property.fields()[1].type());
 	assertEquals(120, property.fields()[1].indicativeSize());
+    }
+
+    @Test
+    public void rulesEnableInlineCfg_definedAppropriately() {
+        final Property property = this.findPropertyByName(EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG).get();
+
+        assertEquals(PropertyType.BOOLEAN, property.type());
+        assertEquals("true", property.defaultValue());
+        assertEquals(true, property.project());
     }
 
     @Test

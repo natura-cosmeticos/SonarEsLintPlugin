@@ -32,22 +32,18 @@ import java.util.Optional;
 
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
-import org.sonar.api.batch.sensor.SensorContext;
-import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.internal.apachecommons.lang.SystemUtils;
-import org.sonar.api.utils.System2;
-import org.sonar.api.utils.TempFolder;
 import org.sonar.api.utils.command.Command;
 import org.sonar.api.utils.command.CommandExecutor;
 import org.sonar.api.utils.command.StreamConsumer;
+import org.sonar.api.utils.System2;
+import org.sonar.api.utils.TempFolder;
 
 import io.github.sleroy.sonar.api.EsLintExecutor;
 import io.github.sleroy.sonar.api.EsLintParser;
 import io.github.sleroy.sonar.api.PathResolver;
-import io.github.sleroy.sonar.model.EsLintIssue;
 
 public class EsLintExecutorImplTest {
     EsLintExecutorImpl executorImpl;
@@ -80,9 +76,10 @@ public class EsLintExecutorImplTest {
         fakePathResolutions.put(EsLintPlugin.SETTING_ES_LINT_CONFIG_PATH, "src/test/resources/.eslintrc.js");
         fakePathResolutions.put(EsLintPlugin.SETTING_ES_LINT_RULES_DIR, "/path/to/rules");
 
-        settings = mock(Configuration.class);
+        settings = mock(GenericConfiguration.class);
         when(settings.getInt(EsLintPlugin.SETTING_ES_LINT_TIMEOUT)).thenReturn(Optional.of(45000));
         when(settings.getBoolean(EsLintPlugin.SETTING_ES_LINT_ENABLED)).thenReturn(Optional.of(true));
+        when(settings.getBoolean(EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG)).thenReturn(Optional.of(true));
         executor = mock(EsLintExecutor.class);
         parser = mock(EsLintParser.class);
 
@@ -104,10 +101,41 @@ public class EsLintExecutorImplTest {
     }
 
     @Test
-    public void BatchesExecutions_IfTooManyFilesForCommandLine() {
+    public void BatchesExecutions_IfTooManyFilesForCommandLineWithoutEnableNoInlineCfg() {
 	final List<String> filenames = new ArrayList<>();
 	int currentLength = 0;
 	final int standardCmdLength = "node path/to/eslint --rules-dir path/to/rules --out path/to/temp --config path/to/config"
+		.length();
+
+	final String firstBatch = "first batch";
+	while (currentLength + 12 < EsLintExecutorImpl.MAX_COMMAND_LENGTH - standardCmdLength) {
+	    filenames.add(firstBatch);
+	    currentLength += firstBatch.length() + 1; // 1 for the space
+	}
+	filenames.add("second batch");
+
+	final ArrayList<Command> capturedCommands = new ArrayList<>();
+	final ArrayList<Long> capturedTimeouts = new ArrayList<>();
+
+	final Answer<Integer> captureCommand = invocation -> {
+	    capturedCommands.add((Command) invocation.getArguments()[0]);
+	    capturedTimeouts.add((long) invocation.getArguments()[3]);
+	    return 0;
+	};
+
+	when(commandExecutor.execute(any(Command.class), any(StreamConsumer.class), any(StreamConsumer.class),
+		any(long.class))).then(captureCommand);
+	executorImpl.execute(config, filenames, context);
+
+	assertEquals(2, capturedCommands.size());
+
+    }
+
+    public void BatchesExecutions_IfTooManyFilesForCommandLineWithEnableNoInlineCfg() {
+    context.addContextProperty(EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG, "true");
+	final List<String> filenames = new ArrayList<>();
+	int currentLength = 0;
+	final int standardCmdLength = "node path/to/eslint --no-inline-config --rules-dir path/to/rules --out path/to/temp --config path/to/config"
 		.length();
 
 	final String firstBatch = "first batch";
@@ -187,7 +215,7 @@ public class EsLintExecutorImplTest {
     }
 
     @Test
-    public void executesCommandWithCorrectArgumentsAndTimeouts() {
+    public void executesCommandWithCorrectArgumentsAndTimeoutsWithoutEnableDisableInlineCfg() {
         final ArrayList<Command> capturedCommands = new ArrayList<>();
         final ArrayList<Long> capturedTimeouts = new ArrayList<>();
 

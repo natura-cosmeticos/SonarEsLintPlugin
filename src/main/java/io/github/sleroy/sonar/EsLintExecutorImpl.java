@@ -66,7 +66,7 @@ public class EsLintExecutorImpl implements EsLintExecutor {
                 .addArgument("json");
 
         //Add argument to eslint ignore the eslint-disable comments
-        if (ctx.config().getBoolean(EsLintPlugin.SETTING_ES_LINT_DISABLE_INLINE_CFG).orElse(Boolean.FALSE)) {
+        if (ctx.config().getBoolean(EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG).orElse(Boolean.FALSE)) {
             command.addArgument("--no-inline-config");
         }
 
