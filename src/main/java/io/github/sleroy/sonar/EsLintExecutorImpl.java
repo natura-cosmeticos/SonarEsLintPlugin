@@ -61,7 +61,9 @@ public class EsLintExecutorImpl implements EsLintExecutor {
                 .addArgument("json");
 
         //Add argument to eslint ignore the eslint-disable comments
-        command.addArgument("--no-inline-config");
+        if (settings.getBoolean(EsLintPlugin.SETTING_ES_LINT_DISABLE_INLINE_CFG).orElse(Boolean.FALSE)) {
+            command.addArgument("--no-inline-config");
+        }
 
         String rulesDir = config.getRulesDir();
         if (rulesDir != null && !rulesDir.isEmpty()) {

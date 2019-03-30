@@ -15,6 +15,8 @@ We don't have plans to add those changes in the original plugin, but if we creat
 
 ## Changelog
 
+0.3.5 - Added flag to --no-inline-config into the Plugin Settings
+
 0.3.4 - Modified the ESLint plugin to deal with issues that registers line as 0
 
 0.3.3 - Added ESLint rules to disable-inline plugin

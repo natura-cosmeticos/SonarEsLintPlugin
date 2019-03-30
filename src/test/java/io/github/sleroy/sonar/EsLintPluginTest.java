@@ -32,8 +32,7 @@ public class EsLintPluginTest {
     public static final int EXPECTED_PROPERTIES = 6;
 
     private static Optional<Property> findPropertyByName(Property[] properties, String name) {
-
-	return Stream.of(properties).filter(p -> p.key().equals(name)).findFirst();
+        return Stream.of(properties).filter(p -> p.key().equals(name)).findFirst();
     }
 
     EsLintPlugin plugin;
@@ -75,6 +74,7 @@ public class EsLintPluginTest {
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_TIMEOUT));
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_RULES_DIR));
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_RULE_CONFIGS));
+  assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_DISABLE_INLINE_CFG));
     }
 
     @Test

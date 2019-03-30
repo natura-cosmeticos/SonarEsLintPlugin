@@ -18,7 +18,7 @@ import org.sonar.api.utils.ValidationMessages;
 import io.github.sleroy.sonar.model.EsLintRule;
 
 /**
- * This class defines the iinformations required to create a default rule
+ * This class defines the informations required to create a default rule
  * profile for EsLint.
  */
 public class EsLintRuleProfile extends ProfileDefinition {
