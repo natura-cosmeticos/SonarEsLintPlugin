@@ -114,7 +114,7 @@ public class EsLintSensor implements Sensor {
 	final Map<String, InputFile> fileMap = buildFileMapWithJSFiles(ctx, paths);
 
 	// Execute the ESLint plugin and obtain JSON Results
-	final List<String> jsonResults = executor.execute(config, paths);
+	final List<String> jsonResults = executor.execute(config, paths, ctx);
 	LOG.debug("Obtained {} JSON Results", jsonResults.size());
 	// Parse the ESLint issues
 	final Map<String, List<EsLintIssue>> issues = parser.parse(jsonResults);

@@ -89,7 +89,7 @@ public class EsLintPlugin implements Plugin {
     public static final String SETTING_ES_LINT_TIMEOUT = "sonar.eslint.eslinttimeout";
     public static final String SETTING_ES_LINT_RULES_DIR = "sonar.eslint.eslintrulesdir";
     public static final String SETTING_ES_RULE_CONFIGS = "sonar.eslint.ruleconfigs";
-    public static final String SETTING_ES_LINT_DISABLE_INLINE_CFG = "sonar.eslint.disableinlinecfg";
+    public static final String SETTING_ES_LINT_DISABLE_INLINE_CFG = "sonar.eslint.eslintdisableinlinecfg";
 
 
     @Override

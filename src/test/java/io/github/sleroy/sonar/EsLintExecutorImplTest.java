@@ -10,6 +10,9 @@
  */
 package io.github.sleroy.sonar;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,22 +20,34 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import org.mockito.stubbing.Answer;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.stubbing.Answer;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
+import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
+import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
+import org.sonar.api.batch.sensor.SensorContext;
+import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
+import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.internal.apachecommons.lang.SystemUtils;
 import org.sonar.api.utils.System2;
 import org.sonar.api.utils.TempFolder;
 import org.sonar.api.utils.command.Command;
 import org.sonar.api.utils.command.CommandExecutor;
 import org.sonar.api.utils.command.StreamConsumer;
+
+import io.github.sleroy.sonar.api.EsLintExecutor;
+import io.github.sleroy.sonar.api.EsLintParser;
+import io.github.sleroy.sonar.api.PathResolver;
+import io.github.sleroy.sonar.model.EsLintIssue;
 
 public class EsLintExecutorImplTest {
     EsLintExecutorImpl executorImpl;
@@ -43,6 +58,50 @@ public class EsLintExecutorImplTest {
     System2 system;
 
     EsLintExecutorConfig config;
+
+    Configuration settings;
+
+    DefaultInputFile file;
+    DefaultInputFile typeDefFile;
+
+    EsLintExecutor executor;
+    EsLintParser   parser;
+    EsLintSensor   sensor;
+
+    SensorContextTester context;
+
+    PathResolver	    resolver;
+    HashMap<String, String> fakePathResolutions;
+
+    @Before
+    public void before() throws Exception {
+        fakePathResolutions = new HashMap<>();
+        fakePathResolutions.put(EsLintPlugin.SETTING_ES_LINT_PATH, "/path/to/eslint");
+        fakePathResolutions.put(EsLintPlugin.SETTING_ES_LINT_CONFIG_PATH, "src/test/resources/.eslintrc.js");
+        fakePathResolutions.put(EsLintPlugin.SETTING_ES_LINT_RULES_DIR, "/path/to/rules");
+
+        settings = mock(Configuration.class);
+        when(settings.getInt(EsLintPlugin.SETTING_ES_LINT_TIMEOUT)).thenReturn(Optional.of(45000));
+        when(settings.getBoolean(EsLintPlugin.SETTING_ES_LINT_ENABLED)).thenReturn(Optional.of(true));
+        executor = mock(EsLintExecutor.class);
+        parser = mock(EsLintParser.class);
+
+        resolver = mock(PathResolver.class);
+        sensor = spy(new EsLintSensor(settings, resolver, executor, parser));
+
+        file = TestInputFileBuilder
+            .create("", "path/to/file").setLanguage(EsLintLanguage.LANGUAGE_KEY).setLines(1).setLastValidOffset(999)
+            .setOriginalLineOffsets(new int[] { 5 }).build();
+
+        typeDefFile = TestInputFileBuilder
+            .create("", "path/to/file.d.ts").setLanguage(EsLintLanguage.LANGUAGE_KEY).setLines(1)
+            .setLastValidOffset(999)
+            .setOriginalLineOffsets(new int[] { 5 }).build();
+
+        context = SensorContextTester.create(new File(""));
+        context.fileSystem().add(file);
+        context.fileSystem().add(typeDefFile);
+    }
 
     @Test
     public void BatchesExecutions_IfTooManyFilesForCommandLine() {
@@ -69,7 +128,7 @@ public class EsLintExecutorImplTest {
 
 	when(commandExecutor.execute(any(Command.class), any(StreamConsumer.class), any(StreamConsumer.class),
 		any(long.class))).then(captureCommand);
-	executorImpl.execute(config, filenames);
+	executorImpl.execute(config, filenames, context);
 
 	assertEquals(2, capturedCommands.size());
 
@@ -90,7 +149,7 @@ public class EsLintExecutorImplTest {
 		any(long.class))).then(captureCommand);
 
 	config.setRulesDir("");
-	executorImpl.execute(config, Arrays.asList(new String[] { "path/to/file" }));
+	executorImpl.execute(config, Arrays.asList(new String[] { "path/to/file" }), context);
 
 	final Command theCommand = capturedCommands.get(0);
 	assertFalse(theCommand.toCommandLine().contains("--rules-dir"));
@@ -111,7 +170,7 @@ public class EsLintExecutorImplTest {
 		any(long.class))).then(captureCommand);
 
 	config.setRulesDir(null);
-	executorImpl.execute(config, Arrays.asList(new String[] { "path/to/file" }));
+	executorImpl.execute(config, Arrays.asList(new String[] { "path/to/file" }), context);
 
 	final Command theCommand = capturedCommands.get(0);
 	assertFalse(theCommand.toCommandLine().contains("--rules-dir"));
@@ -119,39 +178,40 @@ public class EsLintExecutorImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void execute_throws_ifNullConfigSupplied() {
-	executorImpl.execute(null, new ArrayList<String>());
+        executorImpl.execute(null, new ArrayList<String>(), context);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void execute_throws_ifNullFileListSupplied() {
-	executorImpl.execute(config, null);
+        executorImpl.execute(config, null, context);
     }
 
     @Test
     public void executesCommandWithCorrectArgumentsAndTimeouts() {
-	final ArrayList<Command> capturedCommands = new ArrayList<>();
-	final ArrayList<Long> capturedTimeouts = new ArrayList<>();
+        final ArrayList<Command> capturedCommands = new ArrayList<>();
+        final ArrayList<Long> capturedTimeouts = new ArrayList<>();
 
-	final Answer<Integer> captureCommand = invocation -> {
-	    capturedCommands.add((Command) invocation.getArguments()[0]);
-	    capturedTimeouts.add((long) invocation.getArguments()[3]);
-	    return 0;
-	};
+        final Answer<Integer> captureCommand = invocation -> {
+            capturedCommands.add((Command) invocation.getArguments()[0]);
+            capturedTimeouts.add((long) invocation.getArguments()[3]);
+            return 0;
+        };
 
-	when(commandExecutor.execute(any(Command.class), any(StreamConsumer.class), any(StreamConsumer.class),
-		any(long.class))).then(captureCommand);
-	executorImpl.execute(config, Arrays.asList(new String[] { "path/to/file", "path/to/another" }));
+        when(commandExecutor.execute(any(Command.class), any(StreamConsumer.class), any(StreamConsumer.class),
+                                     any(long.class))).then(captureCommand);
+        executorImpl.execute(config, Arrays.asList(new String[] { "path/to/file", "path/to/another" }), context);
 
-	assertEquals(1, capturedCommands.size());
+        assertEquals(1, capturedCommands.size());
 
-	final Command theCommand = capturedCommands.get(0);
-	final long theTimeout = capturedTimeouts.get(0);
+        final Command theCommand = capturedCommands.get(0);
+        final long theTimeout = capturedTimeouts.get(0);
 
-	assertEquals(
-		"node path/to/eslint -f json --no-inline-config --rules-dir path/to/rules --output-file path/to/temp --config path/to/config path/to/file path/to/another",
-		theCommand.toCommandLine());
-	// Expect one timeout period per file processed
-	assertEquals(2 * 40000, theTimeout);
+        assertEquals(
+                     "node path/to/eslint -f json --rules-dir path/to/rules --output-file path/to/temp --config path/to/config path/to/file path/to/another",
+                     theCommand.toCommandLine()
+                     );
+        // Expect one timeout period per file processed
+        assertEquals(2 * 40000, theTimeout);
     }
 
     @Before
