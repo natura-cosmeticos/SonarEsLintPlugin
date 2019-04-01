@@ -19,6 +19,15 @@ import org.sonar.api.PropertyType;
                 project = true
         ),
         @Property(
+                key = EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG,
+                type = PropertyType.BOOLEAN,
+                defaultValue = "true",
+                name = "Enable ESLint --no-inline-config flag to analysis the skipped code",
+                description = "Run ESLint with --no-inline-config",
+                project = true,
+                global = true
+        ),
+        @Property(
                 key = EsLintPlugin.SETTING_ES_LINT_PATH,
                 defaultValue = "",
                 name = "Path to ESLint",
@@ -81,6 +90,7 @@ public class EsLintPlugin implements Plugin {
     public static final String SETTING_ES_LINT_TIMEOUT = "sonar.eslint.eslinttimeout";
     public static final String SETTING_ES_LINT_RULES_DIR = "sonar.eslint.eslintrulesdir";
     public static final String SETTING_ES_RULE_CONFIGS = "sonar.eslint.ruleconfigs";
+    public static final String SETTING_ES_LINT_ENABLE_NO_INLINE_CFG = "sonar.eslint.enablenoinlinecfg";
 
 
     @Override
@@ -91,7 +101,6 @@ public class EsLintPlugin implements Plugin {
                 .addExtension(EsLintRuleProfile.class)
                 .addExtension(EsLintLanguage.class)
                 .addExtension(EsLintSensor.class)
-
                 .addExtension(EsRulesDefinition.class);
 
         // Additional services to be DI'd into the above

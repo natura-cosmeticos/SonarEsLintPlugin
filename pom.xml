@@ -7,7 +7,7 @@
 	<groupId>org.github.sleroy.io</groupId>
 	<artifactId>sonar-eslint-plugin</artifactId>
 	<packaging>sonar-plugin</packaging>
-	<version>0.3.4</version>
+	<version>0.3.5</version>
 
 	<name>ESLint</name>
 	<description>Analyse ESLint projects</description>
@@ -15,8 +15,8 @@
 	<url>https://github.com/sleroy/SonarTsPlugin</url>
 
 	<organisation>
-		<name>Sylvain Leroy, Paul O'Neill (pablissimo) and contributors</name>
-		<url>https://github.com/sleroy/SonarEsLintPlugin</url>
+		<name>Natura, Sylvain Leroy, Paul O'Neill (pablissimo) and contributors</name>
+		<url>https://github.com/natura-cosmeticos/SonarEsLintPlugin - forked from: https://github.com/sleroy/SonarEsLintPlugin</url>
 	</organisation>
 
 	<developers>
@@ -33,8 +33,8 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git@github.com:sleroy/SonarEsLintPlugin.git</connection>
-		<developerConnection>scm:git:git@github.com:sleroy/SonarEsLintPlugin.git</developerConnection>
+		<connection>scm:git:git@github.com:natura-cosmeticos/SonarEsLintPlugin.git</connection>
+		<developerConnection>scm:git:git@github.com:natura-cosmeticos/SonarEsLintPlugin.git</developerConnection>
 		<url>https://github.com/sleroy/SonarTsPlugin</url>
 		<tag>1.0</tag>
 	</scm>

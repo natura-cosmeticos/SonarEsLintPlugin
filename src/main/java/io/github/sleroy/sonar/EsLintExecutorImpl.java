@@ -3,6 +3,7 @@ package io.github.sleroy.sonar;
 import io.github.sleroy.sonar.api.EsLintExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.utils.System2;
 import org.sonar.api.utils.TempFolder;
 import org.sonar.api.utils.command.Command;
@@ -51,7 +52,11 @@ public class EsLintExecutorImpl implements EsLintExecutor {
         }
     }
 
-    private Command getBaseCommand(EsLintExecutorConfig config, String tempPath) {
+    private Command getBaseCommand(
+        EsLintExecutorConfig config,
+        String tempPath,
+        final SensorContext ctx
+    ) {
         Command command =
                 Command
                         .create("node")
@@ -61,7 +66,9 @@ public class EsLintExecutorImpl implements EsLintExecutor {
                 .addArgument("json");
 
         //Add argument to eslint ignore the eslint-disable comments
-        command.addArgument("--no-inline-config");
+        if (ctx.config().getBoolean(EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG).orElse(Boolean.FALSE)) {
+            command.addArgument("--no-inline-config");
+        }
 
         String rulesDir = config.getRulesDir();
         if (rulesDir != null && !rulesDir.isEmpty()) {
@@ -87,7 +94,7 @@ public class EsLintExecutorImpl implements EsLintExecutor {
     }
 
     @Override
-    public List<String> execute(EsLintExecutorConfig config, List<String> files) {
+    public List<String> execute(EsLintExecutorConfig config, List<String> files, SensorContext ctx) {
         if (config == null) {
             throw new IllegalArgumentException("config");
         }
@@ -99,7 +106,7 @@ public class EsLintExecutorImpl implements EsLintExecutor {
         // We'll use this as our reference for chunking up files, if we need to
         File eslintOutputFile = this.tempFolder.newFile();
         String eslintOutputFilePath = eslintOutputFile.getAbsolutePath();
-        Command baseCommand = this.getBaseCommand(config, eslintOutputFilePath);
+        Command baseCommand = this.getBaseCommand(config, eslintOutputFilePath, ctx);
 
         LOG.debug("Using a temporary path for EsLint output: {}", eslintOutputFilePath);
 
@@ -135,7 +142,7 @@ public class EsLintExecutorImpl implements EsLintExecutor {
         for (int i = 0, ni = batches.size(); i < ni; i++) {
             StringBuilder outputBuilder = new StringBuilder();
             List<String> thisBatch = batches.get(i);
-            Command thisCommand = this.getBaseCommand(config, eslintOutputFilePath);
+            Command thisCommand = this.getBaseCommand(config, eslintOutputFilePath, ctx);
 
             for (int fileIndex = 0, nf = thisBatch.size(); fileIndex < nf; fileIndex++) {
                 thisCommand.addArgument(thisBatch.get(fileIndex));

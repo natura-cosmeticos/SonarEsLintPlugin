@@ -69,7 +69,7 @@ public class EsLintSensorTest {
 
 	sensor.execute(context);
 
-	verify(executor, times(0)).execute(any(EsLintExecutorConfig.class), any(List.class));
+	verify(executor, times(0)).execute(any(EsLintExecutorConfig.class), any(List.class), any(SensorContext.class));
 
 	assertEquals(0, context.allIssues().size());
     }
@@ -188,7 +188,7 @@ public class EsLintSensorTest {
 
 	sensor.execute(context);
 
-	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class));
+	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class), any(SensorContext.class));
 	assertEquals((Integer) EsLintExecutorConfig.MAX_TIMEOUT, configCaptor.getValue().getTimeoutMs());
     }
 
@@ -196,7 +196,7 @@ public class EsLintSensorTest {
     public void execute_callsExecutorWithConfiguredPaths() {
 	sensor.execute(context);
 
-	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class));
+	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class), any(SensorContext.class));
 	assertEquals("/path/to/eslint", configCaptor.getValue().getPathToEsLint());
 	assertEquals("src/test/resources/.eslintrc.js", configCaptor.getValue().getConfigFile());
 	assertEquals("/path/to/rules", configCaptor.getValue().getRulesDir());
@@ -206,7 +206,7 @@ public class EsLintSensorTest {
     public void execute_callsExecutorWithSuppliedTimeout() throws IOException {
 	sensor.execute(context);
 
-	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class));
+	verify(executor, times(1)).execute(configCaptor.capture(), any(List.class), any(SensorContext.class));
 	assertEquals((Integer) EsLintExecutorConfig.MAX_TIMEOUT, configCaptor.getValue().getTimeoutMs());
     }
 
@@ -216,7 +216,7 @@ public class EsLintSensorTest {
 
 	sensor.execute(context);
 
-	verify(executor, times(0)).execute(any(EsLintExecutorConfig.class), any(List.class));
+	verify(executor, times(0)).execute(any(EsLintExecutorConfig.class), any(List.class), any(SensorContext.class));
 
 	assertEquals(0, context.allIssues().size());
     }
@@ -271,7 +271,7 @@ public class EsLintSensorTest {
 
 	sensor.execute(context);
 
-	verify(executor, times(0)).execute(any(EsLintExecutorConfig.class), any(List.class));
+	verify(executor, times(0)).execute(any(EsLintExecutorConfig.class), any(List.class), any(SensorContext.class));
 
 	assertEquals(0, context.allIssues().size());
     }

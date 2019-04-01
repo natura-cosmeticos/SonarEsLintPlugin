@@ -12,10 +12,10 @@ package io.github.sleroy.sonar.api;
 import java.util.List;
 
 import org.sonar.api.batch.ScannerSide;
-
+import org.sonar.api.batch.sensor.SensorContext;
 import io.github.sleroy.sonar.EsLintExecutorConfig;
 
 @ScannerSide
 public interface EsLintExecutor {
-    List<String> execute(EsLintExecutorConfig config, List<String> files);
+    List<String> execute(EsLintExecutorConfig config, List<String> files, SensorContext ctx);
 }

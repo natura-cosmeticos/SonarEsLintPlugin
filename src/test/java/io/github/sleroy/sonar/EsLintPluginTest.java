@@ -29,11 +29,10 @@ import org.sonar.api.internal.SonarRuntimeImpl;
 import org.sonar.api.utils.Version;
 
 public class EsLintPluginTest {
-    public static final int EXPECTED_PROPERTIES = 6;
+    public static final int EXPECTED_PROPERTIES = 7;
 
     private static Optional<Property> findPropertyByName(Property[] properties, String name) {
-
-	return Stream.of(properties).filter(p -> p.key().equals(name)).findFirst();
+        return Stream.of(properties).filter(p -> p.key().equals(name)).findFirst();
     }
 
     EsLintPlugin plugin;
@@ -75,6 +74,7 @@ public class EsLintPluginTest {
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_TIMEOUT));
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_RULES_DIR));
 	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_RULE_CONFIGS));
+	assertNotNull(EsLintPluginTest.findPropertyByName(properties, EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG));
     }
 
     @Test
@@ -95,6 +95,15 @@ public class EsLintPluginTest {
 	assertEquals("config", property.fields()[1].key());
 	assertEquals(PropertyType.TEXT, property.fields()[1].type());
 	assertEquals(120, property.fields()[1].indicativeSize());
+    }
+
+    @Test
+    public void rulesEnableInlineCfg_definedAppropriately() {
+        final Property property = this.findPropertyByName(EsLintPlugin.SETTING_ES_LINT_ENABLE_NO_INLINE_CFG).get();
+
+        assertEquals(PropertyType.BOOLEAN, property.type());
+        assertEquals("true", property.defaultValue());
+        assertEquals(true, property.project());
     }
 
     @Test

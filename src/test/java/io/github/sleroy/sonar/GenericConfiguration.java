@@ -47,8 +47,7 @@ public class GenericConfiguration implements Configuration {
      *            the value
      */
     public void setProperty(String key, int _value) {
-	settings.setProperty(key, _value);
-
+        settings.setProperty(key, _value);
     }
 
     /**
@@ -60,8 +59,7 @@ public class GenericConfiguration implements Configuration {
      *            the value
      */
     public void setProperty(String key, String _value) {
-	settings.setProperty(key, _value);
-
+        settings.setProperty(key, _value);
     }
 
 }
